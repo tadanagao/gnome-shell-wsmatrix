@@ -1,73 +1,29 @@
 const Main = imports.ui.main;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const ThumbnailsBox = WorkspaceThumbnail.ThumbnailsBox;
-const WorkspacesView = imports.ui.workspacesView.WorkspacesView;
-const { Clutter, St, Meta } = imports.gi;
+const WorkspacesView = imports.ui.workspacesView;
+const { Clutter, St, Meta, GObject } = imports.gi;
 const Tweener = imports.ui.tweener;
 const DND = imports.ui.dnd;
 
 const MAX_HORIZONTAL_THUMBNAIL_SCALE = 0.4;
 
-var ThumbnailsBoxOverride = class {
-   constructor(thumbnailsBox, rows, columns) {
+var WsmatrixThumbnailsBox = GObject.registerClass(
+class WsmatrixThumbnailsBox extends ThumbnailsBox {
+   _init(rows, columns) {
+      super._init();
       this.rows = rows;
       this.columns = columns;
-      this.thumbnailsBox = thumbnailsBox;
-      this.overrideProperties = [
-         '_activateThumbnailAtPoint',
-         '_activeWorkspaceChanged',
-         'allocate',
-         'handleDragOver',
-         'get_preferred_height',
-         'get_preferred_width',
-      ];
-      this.overrideOriginalProperties();
-   }
-
-   destroy() {
-      this.restoreOriginalProperties();
-   }
-
-   overrideOriginalProperties() {
-      this.thumbnailsBox._overrideProperties = {};
-      this.overrideProperties.forEach(function (prop) {
-         this.thumbnailsBox._overrideProperties[prop] = this.thumbnailsBox[prop].bind(this.thumbnailsBox);
-         this.thumbnailsBox[prop] = this[prop].bind(this.thumbnailsBox);
-      }, this);
-
-      this.thumbnailsBox.getRows = this.getRows.bind(this);
-      this.thumbnailsBox.getColumns = this.getColumns.bind(this);
-      this.thumbnailsBox.indicatorX = 0;
-   }
-
-   restoreOriginalProperties() {
-      this.overrideProperties.forEach(function (prop) {
-         this.thumbnailsBox[prop] = this.thumbnailsBox._overrideProperties[prop]
-      }, this);
-
-      delete this.thumbnailsBox._overrideProperties;
-      delete this.thumbnailsBox.getRows;
-      delete this.thumbnailsBox.getColumns;
    }
 
    setRows(rows) {
       this.rows = rows;
    }
 
-   getRows() {
-      return this.rows;
-   }
-
    setColumns(columns) {
       this.columns = columns;
    }
 
-   getColumns() {
-      return this.columns;
-   }
-
-   // Overriding the switch to workspace method
-   // triggered on clicking a workspace thumbnail in the thumbnailbox of the overview
    _activateThumbnailAtPoint(stageX, stageY, time) {
       let [r, x, y] = this.transform_stage_point(stageX, stageY);
 
@@ -75,94 +31,94 @@ var ThumbnailsBoxOverride = class {
          let thumbnail = this._thumbnails[i]
          let [w, h] = thumbnail.actor.get_transformed_size();
 
-         // Add x range check to check for both vertical and horizontal position
+         // Add x range check to check for both vertical and horizontal position.
          if (y >= thumbnail.actor.y && y <= thumbnail.actor.y + h &&
             x >= thumbnail.actor.x && x <= thumbnail.actor.x + w) {
             thumbnail.activate(time);
             break;
          }
       }
-      this.queue_relayout();
    }
 
    // Overriding the Tweener animation to consider both vertical and horizontal changes
    // the original method only animates vertically
-   _activeWorkspaceChanged() {
-      let thumbnail;
-      let workspaceManager = global.workspace_manager;
-      let activeWorkspace = workspaceManager.get_active_workspace();
-      for (let i = 0; i < this._thumbnails.length; i++) {
-         if (this._thumbnails[i].metaWorkspace == activeWorkspace) {
-            thumbnail = this._thumbnails[i];
-            break;
-         }
-      }
+   // _activeWorkspaceChanged(wm, from, to, direction) {
+   //    let thumbnail;
+   //    let workspaceManager = global.workspace_manager;
+   //    let activeWorkspace = workspaceManager.get_active_workspace();
+   //    for (let i = 0; i < this._thumbnails.length; i++) {
+   //       if (this._thumbnails[i].metaWorkspace == activeWorkspace) {
+   //          thumbnail = this._thumbnails[i];
+   //          break;
+   //       }
+   //    }
 
-      this._animatingIndicator = true;
-      let indicatorThemeNode = this._indicator.get_theme_node();
+   //    this._animatingIndicator = true;
+   //    let indicatorThemeNode = this._indicator.get_theme_node();
 
-      //todo
-      let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
-      this.indicatorY = this._indicator.allocation.y1 + indicatorTopFullBorder;
-      Tweener.addTween(this,
-         {
-            indicatorY: thumbnail.actor.allocation.y1,
-            indicatorX: thumbnail.actor.allocation.x1,
-            time: WorkspacesView.WORKSPACE_SWITCH_TIME,
-            transition: 'easeOutQuad',
-            onComplete() {
-               this._animatingIndicator = false;
-               this._queueUpdateStates();
-            },
-            onCompleteScope: this
-         });
-   }
+   //    let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
+   //    this.indicatorY = this._indicator.allocation.y1 + indicatorTopFullBorder;
+   //    Tweener.addTween(this,
+   //       {
+   //          indicatorY: thumbnail.actor.allocation.y1,
+   //          indicatorX: thumbnail.actor.allocation.x1,
+   //          time: WorkspacesView.WORKSPACE_SWITCH_TIME,
+   //          transition: 'easeOutQuad',
+   //          onComplete() {
+   //             this._animatingIndicator = false;
+   //             this._queueUpdateStates();
+   //          },
+   //          onCompleteScope: this
+   //       });
+   // }
 
    // It is helpful to be able to control the height
    // however, this method is not being called for some reason
-   get_preferred_height(forWidth) {
+   vfunc_get_preferred_height(forWidth) {
       let themeNode = this.get_theme_node();
 
       let spacing = themeNode.get_length('spacing');
-      let totalSpacing = (this.getRows() - 1) * spacing;
+      let totalSpacing = (this.rows - 1) * spacing;
 
-      let naturalHeight = totalSpacing + this.getRows() * this._porthole.height * WorkspaceThumbnail.MAX_THUMBNAIL_SCALE;
+      let naturalHeight = totalSpacing + this.rows * this._porthole.height * WorkspaceThumbnail.MAX_THUMBNAIL_SCALE;
+
       return themeNode.adjust_preferred_height(totalSpacing, naturalHeight);
    }
 
    // Overriding the preferred width of the workspaces box
    // it sets it to NUMBER_OF_COLUMNS * DEFAULT_WORKSPACE_WIDTH (maximum width is 40% of the screen)
    // original code sets the width to DEFAULT_WORKSPACE_WIDTH
-   get_preferred_width(forHeight) {
+   vfunc_get_preferred_width(forHeight) {
       let themeNode = this.get_theme_node();
       forHeight = themeNode.adjust_for_height(forHeight);
 
       let spacing = themeNode.get_length('spacing');
-      let totalSpacingX = (this.getColumns() - 1) * spacing;
-      let totalSpacingY = (this.getRows() - 1) * spacing;
+      let totalSpacingX = (this.columns - 1) * spacing;
+      let totalSpacingY = (this.rows - 1) * spacing;
 
       let availY = forHeight - totalSpacingY;
-      let scale = availY < 0 ? WorkspaceThumbnail.MAX_THUMBNAIL_SCALE : (availY / this.getRows()) / this._porthole.height;
+      let scale = (availY / this.rows) / this._porthole.height;
       scale = Math.min(scale, WorkspaceThumbnail.MAX_THUMBNAIL_SCALE);
 
-      let width = Math.round(totalSpacingX + this.getColumns() * this._porthole.width * scale);
+      let width = Math.round(totalSpacingX + this.columns * this._porthole.width * scale);
       let maxWidth =
          Main.layoutManager.primaryMonitor.width *
          MAX_HORIZONTAL_THUMBNAIL_SCALE -
          themeNode.get_horizontal_padding();
 
-      this._maxHorizontalScale = (maxWidth - totalSpacingX) / this.getColumns() / this._porthole.width;
+      this._maxHorizontalScale = (maxWidth - totalSpacingX) / this.columns / this._porthole.width;
       width = Math.min(maxWidth, width);
+
       return themeNode.adjust_preferred_width(width, width);
    }
 
 
    // Rearrange the positions of workspaces thumbnails in overview
    // show a grid instead of a vertical thumbnailbox
-   allocate(box, flags) {
+   vfunc_allocate(box, flags) {
       // workaround to get the fix workspaces box size
-      this._overrideProperties.allocate(box, flags);
-      // this.set_allocation(box, flags);
+      // super.allocate(box, flags);
+      this.set_allocation(box, flags);
 
       let rtl = (Clutter.get_default_text_direction() == Clutter.TextDirection.RTL);
 
@@ -179,10 +135,10 @@ var ThumbnailsBoxOverride = class {
       let spacing = themeNode.get_length('spacing');
 
       // Compute the scale we'll need once everything is updated
-      let totalSpacing = (this.getRows() - 1) * spacing;
+      let totalSpacing = (this.rows - 1) * spacing;
       let availY = (box.y2 - box.y1) - totalSpacing;
 
-      let newScale = (availY / this.getRows()) / portholeHeight;
+      let newScale = (availY / this.rows) / portholeHeight;
       newScale = Math.min(newScale, WorkspaceThumbnail.MAX_THUMBNAIL_SCALE);
 
       if (this._maxHorizontalScale) {
@@ -205,7 +161,7 @@ var ThumbnailsBoxOverride = class {
 
       let thumbnailHeight = portholeHeight * this._scale;
       let thumbnailWidth = Math.round(portholeWidth * this._scale);
-      let thumbnailBoxWidth = thumbnailWidth * this.getColumns() + spacing * (this.getColumns() - 1);
+      let thumbnailBoxWidth = thumbnailWidth * this.columns + spacing * (this.columns - 1);
       let roundedHScale = thumbnailWidth / portholeWidth;
 
       let slideOffset; // X offset when thumbnail is fully slid offscreen
@@ -244,10 +200,10 @@ var ThumbnailsBoxOverride = class {
 
          // if (i > 0)
          //    y += spacing - Math.round(thumbnail.collapseFraction * spacing);
-         let y = box.y1 + (spacing + thumbnailHeight) * Math.floor(i / this.getColumns());
+         let y = box.y1 + (spacing + thumbnailHeight) * Math.floor(i / this.columns);
 
          let x1, x2;
-         let currentColumn = (totalThumbnails - i - 1) % this.getColumns();
+         let currentColumn = (totalThumbnails - i - 1) % this.columns;
          if (rtl) {
             x1 = box.x1 + slideOffset * thumbnail.slidePosition - ((thumbnailWidth + spacing) * currentColumn);
             x2 = x1 + thumbnailWidth;
@@ -374,4 +330,4 @@ var ThumbnailsBoxOverride = class {
       else
          return DND.DragMotionResult.CONTINUE;
    }
-}
+});
