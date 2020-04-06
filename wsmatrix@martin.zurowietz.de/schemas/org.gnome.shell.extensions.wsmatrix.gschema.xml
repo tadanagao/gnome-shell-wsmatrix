@@ -59,5 +59,19 @@
          Keybinding to confirm and close the workspace overview
       </description>
     </key>
+    <key name="workspace-mark" type="as">
+      <default>["&lt;Shift&gt;&lt;Alt&gt;space"]</default>
+      <summary>Keybinding to mark the current workspace</summary>
+      <description>
+         Keybinding to mark the current workspace.
+      </description>
+    </key>
+    <key name="workspace-exchange-mark" type="as">
+      <default>["&lt;Shift&gt;&lt;Alt&gt;0"]</default>
+      <summary>Keybinding to exchange the current workspace and the marked</summary>
+      <description>
+         Keybinding to exchange the current workspace and the marked.
+      </description>
+    </key>
   </schema>
 </schemalist>

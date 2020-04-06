@@ -16,6 +16,7 @@ var WmOverride = class {
       this.originalDynamicWorkspaces = this._mutterSettings.get_boolean('dynamic-workspaces');
       this.originalAllowedKeybindings = {};
       this._keybindings = keybindings;
+      this.markedWorkspace = null
 
       this._overrideDynamicWorkspaces();
       this._overrideKeybindingHandlers();
@@ -79,6 +80,20 @@ var WmOverride = class {
          Meta.KeyBindingFlags.NONE,
          Shell.ActionMode.NORMAL,
          this._toggleWorkspaceOverview.bind(this)
+      );
+      this.wm.addKeybinding(
+         'workspace-mark',
+         this._keybindings,
+         Meta.KeyBindingFlags.NONE,
+         Shell.ActionMode.NORMAL,
+         this._markWorkspace.bind(this)
+      );
+      this.wm.addKeybinding(
+         'workspace-exchange-mark',
+         this._keybindings,
+         Meta.KeyBindingFlags.NONE,
+         Shell.ActionMode.NORMAL,
+         this._exchangeWorkspaceAndMark.bind(this)
       );
    }
 
@@ -360,5 +375,17 @@ var WmOverride = class {
 
    _workspaceOverviewConfirm() {
       this._destroyWorkspaceSwitcherPopup();
+   }
+
+   _markWorkspace() {
+      this.markedWorkspace = this.wsManager.get_active_workspace();
+   }
+
+   _exchangeWorkspaceAndMark() {
+      if (this.markedWorkspace == null)
+	  return;
+      let workspace = this.markedWorkspace
+      this.markedWorkspace  = this.wsManager.get_active_workspace();;
+      this.wm.actionMoveWorkspace(workspace);
    }
 }
