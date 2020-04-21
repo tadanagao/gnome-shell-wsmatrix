@@ -99,6 +99,8 @@ var WmOverride = class {
 
    _removeKeybindings() {
       this.wm.removeKeybinding('workspace-overview-toggle');
+      this.wm.removeKeybinding('workspace-mark');
+      this.wm.removeKeybinding('workspace-exchange-mark');
    }
 
    _addWsOverviewKeybindings(keybindings) {
