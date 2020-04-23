@@ -384,9 +384,9 @@ var WmOverride = class {
    }
 
    _exchangeWorkspaceAndMark() {
-      if (this.markedWorkspace == null)
-	  return;
       let workspace = this.markedWorkspace
+      if (workspace == null)
+	  return;
       this.markedWorkspace  = this.wsManager.get_active_workspace();;
       this.wm.actionMoveWorkspace(workspace);
    }
