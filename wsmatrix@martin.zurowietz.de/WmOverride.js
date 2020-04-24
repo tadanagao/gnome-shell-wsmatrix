@@ -401,5 +401,8 @@ var WmOverride = class {
       let workspace = this.wsManager.get_workspace_by_index(workspace_idx);
       this._markWorkspace();
       this.wm.actionMoveWorkspace(workspace);
+      if (this.wm._workspaceSwitcherPopup) {
+         this.wm._workspaceSwitcherPopup.display(null, workspace_idx);
+      }
    }
 }
