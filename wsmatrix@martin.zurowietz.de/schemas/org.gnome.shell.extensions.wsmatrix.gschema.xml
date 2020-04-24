@@ -15,6 +15,11 @@
       <range min="0.01" max="1.0" />
       <summary>Scale of the workspace thumbnails</summary>
     </key>
+    <key type="i" name="mark">
+      <default>-1</default>
+      <range min="-1" max="1295" />
+      <summary>Marked workspace</summary>
+    </key>
   </schema>
   <schema id="org.gnome.shell.extensions.wsmatrix-keybindings" path="/org/gnome/shell/extensions/wsmatrix/">
     <key name="workspace-overview-toggle" type="as">

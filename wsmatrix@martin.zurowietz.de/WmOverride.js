@@ -16,12 +16,12 @@ var WmOverride = class {
       this.originalDynamicWorkspaces = this._mutterSettings.get_boolean('dynamic-workspaces');
       this.originalAllowedKeybindings = {};
       this._keybindings = keybindings;
-      this.markedWorkspace = null
 
       this._overrideDynamicWorkspaces();
       this._overrideKeybindingHandlers();
       this._handleNumberOfWorkspacesChanged();
       this._handleScaleChanged();
+      this._handleMarkChanged();
       this._connectSettings();
       this._notify();
       this._addKeybindings();
@@ -54,12 +54,18 @@ var WmOverride = class {
          'changed::scale',
          this._handleScaleChanged.bind(this)
       );
+
+      this.settingsHandlerMark = this.settings.connect(
+         'changed::mark',
+         this._handleMarkChanged.bind(this)
+      );
    }
 
    _disconnectSettings() {
       this.settings.disconnect(this.settingsHandlerRows);
       this.settings.disconnect(this.settingsHandlerColumns);
       this.settings.disconnect(this.settingsHandlerScale);
+      this.settings.disconnect(this.settingsHandlerMark);
    }
 
    _connectOverview() {
@@ -162,6 +168,10 @@ var WmOverride = class {
 
    _handleScaleChanged() {
       this.scale = this.settings.get_double('scale');
+   }
+
+   _handleMarkChanged() {
+      this.markedWorkspace = this.settings.get_int('mark');
    }
 
    _overrideLayout() {
@@ -380,14 +390,16 @@ var WmOverride = class {
    }
 
    _markWorkspace() {
-      this.markedWorkspace = this.wsManager.get_active_workspace();
+      let workspace_idx = this.wsManager.get_active_workspace_index();
+      this.settings.set_int('mark', workspace_idx);
    }
 
    _exchangeWorkspaceAndMark() {
-      let workspace = this.markedWorkspace
-      if (workspace == null)
+      let workspace_idx = this.markedWorkspace;
+      if (workspace_idx < 0 || workspace_idx >= this.wsManager.n_workspaces)
 	  return;
-      this.markedWorkspace  = this.wsManager.get_active_workspace();;
+      let workspace = this.wsManager.get_workspace_by_index(workspace_idx);
+      this._markWorkspace();
       this.wm.actionMoveWorkspace(workspace);
    }
 }
