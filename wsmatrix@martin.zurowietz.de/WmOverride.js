@@ -95,6 +95,13 @@ var WmOverride = class {
          this._markWorkspace.bind(this)
       );
       this.wm.addKeybinding(
+         'workspace-switchto-mark',
+         this._keybindings,
+         Meta.KeyBindingFlags.NONE,
+         Shell.ActionMode.NORMAL,
+         this._switchToMark.bind(this)
+      );
+      this.wm.addKeybinding(
          'workspace-exchange-mark',
          this._keybindings,
          Meta.KeyBindingFlags.NONE,
@@ -106,6 +113,7 @@ var WmOverride = class {
    _removeKeybindings() {
       this.wm.removeKeybinding('workspace-overview-toggle');
       this.wm.removeKeybinding('workspace-mark');
+      this.wm.removeKeybinding('workspace-switchto-mark');
       this.wm.removeKeybinding('workspace-exchange-mark');
    }
 
@@ -394,15 +402,24 @@ var WmOverride = class {
       this.settings.set_int('mark', workspace_idx);
    }
 
-   _exchangeWorkspaceAndMark() {
+   _doSwitchToMark(exchg) {
       let workspace_idx = this.markedWorkspace;
       if (workspace_idx < 0 || workspace_idx >= this.wsManager.n_workspaces)
-	  return;
+	 return;
       let workspace = this.wsManager.get_workspace_by_index(workspace_idx);
-      this._markWorkspace();
+      if (exchg)
+	 this._markWorkspace();
       this.wm.actionMoveWorkspace(workspace);
       if (this.wm._workspaceSwitcherPopup) {
          this.wm._workspaceSwitcherPopup.display(null, workspace_idx);
       }
+   }
+
+   _switchToMark() {
+      this._doSwitchToMark(false);
+   }
+
+   _exchangeWorkspaceAndMark() {
+      this._doSwitchToMark(true);
    }
 }
