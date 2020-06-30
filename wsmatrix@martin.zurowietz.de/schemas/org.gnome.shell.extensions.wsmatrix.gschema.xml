@@ -72,14 +72,14 @@
       </description>
     </key>
     <key name="workspace-switchto-mark" type="as">
-      <default>["&lt;Shift&gt;&lt;Alt&gt;slash"]</default>
+      <default>["&lt;Shift&gt;&lt;Alt&gt;0"]</default>
       <summary>Keybinding to switch to the marked workspace</summary>
       <description>
          Keybinding to switch to the marked workspace.
       </description>
     </key>
     <key name="workspace-exchange-mark" type="as">
-      <default>["&lt;Shift&gt;&lt;Alt&gt;0"]</default>
+      <default>["&lt;Shift&gt;&lt;Alt&gt;slash"]</default>
       <summary>Keybinding to exchange the current workspace and the marked</summary>
       <description>
          Keybinding to exchange the current workspace and the marked.
