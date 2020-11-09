@@ -49,6 +49,11 @@
       <default>false</default>
       <summary>Display popup for all monitors instead of only the primary</summary>
     </key>
+    <key type="i" name="mark">
+      <default>-1</default>
+      <range min="-1" max="1295" />
+      <summary>Marked workspace</summary>
+    </key>
   </schema>
   <schema id="org.gnome.shell.extensions.wsmatrix-keybindings" path="/org/gnome/shell/extensions/wsmatrix/">
     <key name="workspace-overview-toggle" type="as">
@@ -91,6 +96,27 @@
       <summary>Keybinding to confirm and close the workspace overview</summary>
       <description>
          Keybinding to confirm and close the workspace overview
+      </description>
+    </key>
+    <key name="workspace-mark" type="as">
+      <default>["&lt;Shift&gt;&lt;Alt&gt;space"]</default>
+      <summary>Keybinding to mark the current workspace</summary>
+      <description>
+         Keybinding to mark the current workspace.
+      </description>
+    </key>
+    <key name="workspace-switchto-mark" type="as">
+      <default>["&lt;Shift&gt;&lt;Alt&gt;0"]</default>
+      <summary>Keybinding to switch to the marked workspace</summary>
+      <description>
+         Keybinding to switch to the marked workspace.
+      </description>
+    </key>
+    <key name="workspace-exchange-mark" type="as">
+      <default>["&lt;Shift&gt;&lt;Alt&gt;slash"]</default>
+      <summary>Keybinding to exchange the current workspace and the marked</summary>
+      <description>
+         Keybinding to exchange the current workspace and the marked.
       </description>
     </key>
   </schema>

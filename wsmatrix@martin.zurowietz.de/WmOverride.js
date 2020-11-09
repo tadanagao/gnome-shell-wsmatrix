@@ -35,6 +35,7 @@ var WmOverride = class {
       this._handleShowWorkspaceNamesChanged();
       this._handleCachePopupChanged();
       this._handleWraparoundModeChanged();
+      this._handleMarkChanged();
       this._connectSettings();
       this._notify();
       this._addKeybindings();
@@ -99,6 +100,11 @@ var WmOverride = class {
          'changed::cache-popup',
          this._handleCachePopupChanged.bind(this)
       );
+
+      this.settingsHandlerMark = this.settings.connect(
+         'changed::mark',
+         this._handleMarkChanged.bind(this)
+      );
    }
 
    _disconnectSettings() {
@@ -111,6 +117,7 @@ var WmOverride = class {
       this.settings.disconnect(this.settingsHandlerWraparoundMode);
       this.settings.disconnect(this.settingsHandlerShowWorkspaceNames);
       this.settings.disconnect(this.settingsHandlerCachePopup);
+      this.settings.disconnect(this.settingsHandlerMark);
    }
 
    _connectOverview() {
@@ -143,10 +150,34 @@ var WmOverride = class {
          Shell.ActionMode.NORMAL,
          this._toggleWorkspaceOverview.bind(this)
       );
+      this.wm.addKeybinding(
+         'workspace-mark',
+         this._keybindings,
+         Meta.KeyBindingFlags.NONE,
+         Shell.ActionMode.NORMAL,
+         this._markWorkspace.bind(this)
+      );
+      this.wm.addKeybinding(
+         'workspace-switchto-mark',
+         this._keybindings,
+         Meta.KeyBindingFlags.NONE,
+         Shell.ActionMode.NORMAL,
+         this._switchToMark.bind(this)
+      );
+      this.wm.addKeybinding(
+         'workspace-exchange-mark',
+         this._keybindings,
+         Meta.KeyBindingFlags.NONE,
+         Shell.ActionMode.NORMAL,
+         this._exchangeWorkspaceAndMark.bind(this)
+      );
    }
 
    _removeKeybindings() {
       this.wm.removeKeybinding('workspace-overview-toggle');
+      this.wm.removeKeybinding('workspace-mark');
+      this.wm.removeKeybinding('workspace-switchto-mark');
+      this.wm.removeKeybinding('workspace-exchange-mark');
    }
 
    _addWsOverviewKeybindings(keybindings) {
@@ -240,6 +271,10 @@ var WmOverride = class {
    _handleCachePopupChanged() {
       this.cachePopup = this.settings.get_boolean('cache-popup');
       this._destroyWorkspaceSwitcherPopup();
+   }
+
+   _handleMarkChanged() {
+      this.markedWorkspace = this.settings.get_int('mark');
    }
 
    _overrideLayout() {
@@ -541,5 +576,31 @@ var WmOverride = class {
 
    _workspaceOverviewConfirm() {
       this._destroyWorkspaceSwitcherPopup();
+   }
+
+   _markWorkspace() {
+      let workspace_idx = this.wsManager.get_active_workspace_index();
+      this.settings.set_int('mark', workspace_idx);
+   }
+
+   _doSwitchToMark(exchg) {
+      let workspace_idx = this.markedWorkspace;
+      if (workspace_idx < 0 || workspace_idx >= this.wsManager.n_workspaces)
+        return;
+      let workspace = this.wsManager.get_workspace_by_index(workspace_idx);
+      if (exchg)
+        this._markWorkspace();
+      this.wm.actionMoveWorkspace(workspace);
+      if (this.wm._workspaceSwitcherPopup) {
+         this.wm._workspaceSwitcherPopup.display(null, workspace_idx);
+      }
+   }
+
+   _switchToMark() {
+      this._doSwitchToMark(false);
+   }
+
+   _exchangeWorkspaceAndMark() {
+      this._doSwitchToMark(true);
    }
 }
