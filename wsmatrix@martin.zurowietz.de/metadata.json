@@ -8,7 +8,7 @@
     "settings-schema": "org.gnome.shell.extensions.wsmatrix-settings",
     "keybindings-schema": "org.gnome.shell.extensions.wsmatrix-keybindings",
     "gettext-domain": "wsmatrix",
-    "version": 37,
+    "version": 38,
     "name": "Workspace Matrix",
     "description": "Arrange workspaces in a two dimensional grid with workspace thumbnails."
 }
