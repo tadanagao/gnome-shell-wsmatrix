@@ -598,9 +598,7 @@ var WorkspaceManagerOverride = class {
       if (exchg)
          this._markWorkspace();
       this.wm.actionMoveWorkspace(workspace);
-      if (this.wm._workspaceSwitcherPopup) {
-         this.wm._workspaceSwitcherPopup.display(null, workspace_idx);
-      }
+      this._showWorkspaceSwitcherPopup(false);
    }
 
    _switchToMark() {
